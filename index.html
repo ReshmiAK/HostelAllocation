@@ -14,11 +14,9 @@
     <!-- Hostel Details Card -->
     <div class="card">
       <h3>1) Hostel details</h3>
-      <div style="display:flex; gap:10px; align-items:end; margin-bottom: 12px;">
-        <div style="flex:1;">
-          <label>No. of hostels ready to be occupied</label>
-          <input type="number" id="hostelCount" min="1" value="1" />
-        </div>
+      <div class="hostel-input-row">
+        <label for="hostelCount">No. of hostels ready to be occupied</label>
+        <input type="number" id="hostelCount" min="1" max="999" placeholder="000" />
         <button class="btn secondary" id="genHostelsBtn" type="button">Generate fields</button>
       </div>
 
@@ -31,8 +29,9 @@
     <!-- Student Details Card -->
     <div class="card">
       <h3>2) Students details</h3>
-      <label>Number of students to be alloted (Don't exceed the total availability)</label>
-      <input type="number" id="studentCount" min="0" value="0" />
+      <label>Upload Student Excel File (.xlsx)</label>
+      <input type="file" id="studentFile" accept=".xlsx" />
+
       <div class="controls" style="margin-top:12px;">
         <button class="btn" id="allocateBtn" type="button">Allocate & Print Result</button>
         <button class="btn Clear" id="clearBtn" type="button">Clear</button>
@@ -40,26 +39,27 @@
       <p class="hint">Allocation order is random.</p>
     </div>
   </div>
-
   <!-- Results Card -->
-  <div class="card" style="margin-top:16px;">
-    <div id="status"></div>
-    <div id="results"></div>
-    <table id="resultsTable">
-      <thead>
-        <tr>
-          <th>Hostel Name </th>
-          <th>Student</th>
-          <th>Room Type</th>
-          <th>Room</th>
-          <th>Seat</th>
-        </tr>
-      </thead>
-      <tbody id="resultsTbody"></tbody>
-    </table>
-  </div>
+<div class="card" style="margin-top:16px;">
+  <table id="resultsTable">
+    <caption id="status"></caption> 
+    <thead>
+      <tr>
+        <th>Hostel Name</th>
+        <th>Roll No</th>
+        <th>Student Name</th>
+        <th>Room Type</th>
+        <th>Room Number</th>
+        <th>Cot Number</th>
+      </tr>
+    </thead>
+    <tbody id="resultsTbody"></tbody>
+  </table>
+</div>
+
 
   <div class="footer">Made by solo creator</div>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

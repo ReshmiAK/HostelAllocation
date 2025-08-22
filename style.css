@@ -113,4 +113,71 @@ th { color: var(--muted); font-weight: 600; }
 .footer { color: var(--muted); font-size: 12px; margin-top: 24px; }
 
 
- 
+/* Inline layout for hostel count input + button */
+.hostel-input-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.hostel-input-row input[type="number"] {
+  width: 70px; /* just enough for 3 digits */
+  text-align: center;
+  padding: 8px;
+}
+
+/* Hide spinner arrows for number input (for cleaner look) */
+input[type=number]::-webkit-inner-spin-button, 
+input[type=number]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type=number] {
+  -moz-appearance: textfield; /* Firefox */
+  #resultsTable caption {
+  caption-side: top;     /* ensures it's above the table */
+  text-align: left;      /* align left, like a status line */
+  font-size: 14px;
+  margin-bottom: 8px;    /* space between text and table header */
+  color: var(--text);
+}
+
+}
+/* Results table styling */
+/* Caption styling for the status line */
+#resultsTable caption {
+  caption-side: top;        /* shows above the table */
+  text-align: left;         /* align left for clarity */
+  font-size: 15px;
+  font-weight: 500;
+  margin-bottom: 12px;      /* creates the visible space from the table */
+  color: var(--text);
+}
+
+#resultsTable {
+  width: 95%;               /* shrink inside the card, not full width */
+  max-width: 1000px;        /* keep it compact */
+  margin: 0 auto;           /* center inside the card */
+  border-collapse: collapse;
+  table-layout: fixed;      /* evenly sized columns */
+}
+
+#resultsTable th,
+#resultsTable td {
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  text-align: center;       /* center all headers & data */
+  font-size: 14px;
+  word-wrap: break-word;
+}
+
+#resultsTable th {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+/* Ensure card and table alignment */
+.card #results {
+  margin-bottom: 12px;
+}

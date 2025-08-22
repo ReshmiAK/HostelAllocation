@@ -5,13 +5,41 @@ const genHostelsBtn = document.getElementById('genHostelsBtn');
 const allocateBtn = document.getElementById('allocateBtn');
 const clearBtn = document.getElementById('clearBtn');
 const statusEl = document.getElementById('status');
+const studentFileInput = document.getElementById('studentFile'); // 👈 Excel upload input
 
+let studentsData = []; // will hold {rollNo, name}
 
 function escapeHtml(str) {
   return (str + "").replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
 }
 
-// Room type row
+// ========= FILE UPLOAD HANDLER ==========
+studentFileInput.addEventListener('change', handleFile, false);
+
+function handleFile(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+
+  reader.onload = function (e) {
+    const data = new Uint8Array(e.target.result);
+    const workbook = XLSX.read(data, { type: 'array' });
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+    const json = XLSX.utils.sheet_to_json(sheet);
+
+    // Expect Excel with columns: Roll No | Student Name
+    studentsData = json.map(row => ({
+      rollNo: row["Roll No"] || row["RollNo"] || "",
+      name: row["Student Name"] || row["Name"] || ""
+    }));
+
+    alert(`✅ Loaded ${studentsData.length} students from Excel!`);
+  };
+
+  reader.readAsArrayBuffer(file);
+}
+
+// ========= HOSTEL + ROOM UI =========
 function makeRoomTypeRow(htIndex, rtIndex) {
   const row = document.createElement('div');
   row.className = 'room-type-row';
@@ -38,7 +66,6 @@ function makeRoomTypeRow(htIndex, rtIndex) {
   return row;
 }
 
-// Hostel block
 function makeHostelRow(index, data = { name: '', types: 0 }) {
   const row = document.createElement('div');
   row.className = 'row card hostel-block';
@@ -79,7 +106,6 @@ function makeHostelRow(index, data = { name: '', types: 0 }) {
     }
     updateGrandTotal();
   });
-
 
   row.querySelector('.remove').addEventListener('click', () => {
     row.remove();
@@ -142,10 +168,15 @@ clearBtn.addEventListener('click', () => {
   document.getElementById('resultsTbody').innerHTML = '';
 });
 
+// ========= ALLOCATION =========
 allocateBtn.addEventListener('click', () => {
   statusEl.innerHTML = '';
 
-  const students = Math.max(0, parseInt(document.getElementById('studentCount').value || '0', 10));
+  if (studentsData.length === 0) {
+    alert("⚠️ Please upload a student Excel file first!");
+    return;
+  }
+
   const hostels = [];
 
   [...hostelsWrap.querySelectorAll('.row.card')].forEach((hostelRow, hIndex) => {
@@ -164,29 +195,33 @@ allocateBtn.addEventListener('click', () => {
   });
 
   const capacity = hostels.reduce((sum, h) => sum + h.rooms * h.ppr, 0);
-  let studentList = Array.from({ length: students }, (_, i) => i + 1);
 
-  // shuffle
-  for (let i = studentList.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [studentList[i], studentList[j]] = [studentList[j], studentList[i]];
-  }
+  // shuffle students
+  studentsData = studentsData.sort(() => Math.random() - 0.5);
 
   const rows = [];
   let idx = 0;
   for (const h of hostels) {
-    for (let room = 1; room <= h.rooms && idx < studentList.length; room++) {
-      for (let seat = 1; seat <= h.ppr && idx < studentList.length; seat++) {
-        rows.push({ student: studentList[idx], hostel: h.hostel, type: h.type, room, seat });
+    for (let room = 1; room <= h.rooms && idx < studentsData.length; room++) {
+      for (let seat = 1; seat <= h.ppr && idx < studentsData.length; seat++) {
+        const student = studentsData[idx];
+        rows.push({ 
+          hostel: h.hostel, 
+          rollNo: student.rollNo, 
+          name: student.name, 
+          type: h.type, 
+          roomNumber: room,   
+          cotNo: seat         
+        });
         idx++;
       }
     }
   }
 
-  const unallocated = Math.max(0, students - rows.length);
+  const unallocated = Math.max(0, studentsData.length - rows.length);
   let msg = '';
-  if (students === 0) msg = '<div>No students to allocate.</div>';
-  else if (unallocated > 0) msg = `<div>Unallocated students count = <b>${unallocated}</b>. Capacity = ${capacity}, Students = ${students}</div>`;
+  if (studentsData.length === 0) msg = '<div>No students to allocate.</div>';
+  else if (unallocated > 0) msg = `<div>Unallocated students count = <b>${unallocated}</b>. Capacity = ${capacity}, Students = ${studentsData.length}</div>`;
   else msg = `<div>All students allocated. Capacity = ${capacity}</div>`;
   statusEl.innerHTML = msg;
 
@@ -195,25 +230,24 @@ allocateBtn.addEventListener('click', () => {
 
   let colorToggle = true;
   let lastRoomKey = null;
- rows.forEach(r => {
-  const tr = document.createElement('tr');
-  const roomKey = `${r.hostel}-${r.type}-${r.room}`;
-  if (roomKey !== lastRoomKey) {
-    colorToggle = !colorToggle;
-    lastRoomKey = roomKey;
-  }
-  tr.className = colorToggle ? 'room-color-1' : 'room-color-2';
+  rows.forEach(r => {
+    const tr = document.createElement('tr');
+    const roomKey = `${r.hostel}-${r.type}-${r.roomNumber}`;
+    if (roomKey !== lastRoomKey) {
+      colorToggle = !colorToggle;
+      lastRoomKey = roomKey;
+    }
+    tr.className = colorToggle ? 'room-color-1' : 'room-color-2';
 
-  // 👇 Updated column order
-  tr.innerHTML = `
-    <td>${escapeHtml(r.hostel)}</td>
-    <td>${r.student}</td>
-    <td>${r.type}</td>
-    <td>${r.room}</td>
-    <td>${r.seat}</td>
-  `;
+    tr.innerHTML = `
+      <td>${escapeHtml(r.hostel)}</td>
+      <td>${escapeHtml(r.rollNo)}</td>
+      <td>${escapeHtml(r.name)}</td>
+      <td>${escapeHtml(r.type)}</td>
+      <td>${r.roomNumber}</td>   
+      <td>${r.cotNo}</td>        
+    `;
 
-  tbody.appendChild(tr);
-});
-
+    tbody.appendChild(tr);
+  });
 });
